@@ -1,174 +1,126 @@
-PEC DRAFT – AI Customer Support cho Xanh SM
+# SPEC — AI Product Hackathon
 
-🎯 Problem Statement
+**Nhóm:** Nhóm 4 
+**Track:** ☐ VinFast · ☐ Vinmec · ☐ VinUni-VinSchool ·  ☑ XanhSM · ☐ Open
+**Problem statement (1 câu):** Khách hàng của Xanh SM phải chờ đợi lâu để được hỗ trợ cho các vấn đề lặp lại (khiếu nại, mất đồ, FAQ), trong khi một AI agent có thể hiểu ngữ cảnh và xử lý phần lớn các yêu cầu này ngay lập tức.
 
-Bối cảnh
-Trong quá trình mở rộng nhanh chóng, Xanh SM đang phải xử lý một lượng lớn yêu cầu từ khách hàng mỗi ngày, bao gồm: hỏi thông tin chuyến đi, khiếu nại tài xế, báo mất đồ, và các vấn đề liên quan đến thanh toán.
+---
 
-Vấn đề cốt lõi
-Hiện tại, hệ thống chăm sóc khách hàng gặp 3 hạn chế chính:
+## 1. AI Product Canvas
 
-Quá tải và phản hồi chậm
-Các câu hỏi lặp lại chiếm phần lớn (ví dụ: giá cước, trạng thái chuyến, chính sách huỷ chuyến)
-Nhân viên CSKH không thể xử lý kịp trong giờ cao điểm
-→ Khách hàng phải chờ lâu, trải nghiệm kém
-Thiếu cá nhân hoá và ngữ cảnh
-Hệ thống hiện tại không hiểu sâu lịch sử người dùng
-Không tự động tra cứu dữ liệu liên quan (chuyến đi gần nhất, tài xế, vị trí,...)
-→ Trả lời chung chung, không giải quyết đúng vấn đề
-Xử lý khiếu nại chưa thông minh
-Khó phân loại mức độ nghiêm trọng của khiếu nại
-Không có cơ chế tự động đề xuất hướng xử lý
-→ Tăng chi phí vận hành và rủi ro mất khách
+|   | Value | Trust | Feasibility |
+|---|-------|-------|-------------|
+| **Câu hỏi** | User nào? Pain gì? AI giải gì? | Khi AI sai thì sao? User sửa bằng cách nào? | Cost/latency bao nhiêu? Risk chính? |
+| **Trả lời** | Người dùng Xanh SM mất 5–10 phút để liên hệ CSKH cho các vấn đề đơn giản → AI agent xử lý ngay trong chat (<10s)| AI trả lời sai → user thấy ngay trong chat → có thể nhập lại hoặc yêu cầu tạo ticket|~$0.005–0.02/request, latency <3s, risk: hallucination, hiểu sai intent |
 
-Hệ quả (Impact)
+**Automation hay augmentation?** ☐ Automation · ☑ Augmentation
+Justify: User vẫn là người quyết định cuối cùng (chấp nhận câu trả lời hoặc tạo ticket), AI chỉ đề xuất và hỗ trợ → cost of reject ≈ 0
+**Learning signal:**
 
-Tăng tỷ lệ khách hàng không hài lòng
-Gia tăng chi phí nhân sự CSKH
-Giảm khả năng giữ chân khách hàng trong thị trường cạnh tranh với các nền tảng ride-hailing khác
+1. User correction đi vào đâu? → Log hội thoại + intent đúng → dùng để cải thiện prompt / training sau
+2. Product thu signal gì để biết tốt lên hay tệ đi? 
+   → Tỷ lệ:
+   user chấp nhận câu trả lời
+   user không cần tạo ticket
+   số lần user hỏi lại
+3. Data thuộc loại nào? ☐ User-specific · ☑ Domain-specific · ☑ Real-time · ☑ Human-judgment · ☐ Khác: ___
+   Có marginal value không? (Model đã biết cái này chưa?) Có. Dữ liệu CSKH (complaint, lost-item) mang tính đặc thù, model chung chưa tối ưu tốt.
 
-Câu hỏi cần giải quyết
+---
 
-Làm thế nào để xây dựng một hệ thống AI có thể hiểu đúng ý định khách hàng, truy xuất ngữ cảnh liên quan, và tự động xử lý hoặc hỗ trợ xử lý yêu cầu CSKH một cách nhanh chóng và chính xác, đồng thời giảm tải cho đội ngũ vận hành?
+## 2. User Stories — 4 paths
 
-1. 🧭 Overview
+Mỗi feature chính = 1 bảng. AI trả lời xong → chuyện gì xảy ra?
 
-Tên dự án: Xanh SM AI Support Agent
-Mục tiêu:
-Xây dựng một ứng dụng sử dụng LLM để tự động hóa chăm sóc khách hàng cho dịch vụ gọi xe điện của Xanh SM.
+### Feature: Xử lý khiếu nại tài xế
 
-Vấn đề:
+User nhập: “Tôi bị tài xế đi vòng”
 
-Quá tải CSKH
-Khách hỏi lặp lại
-Phản hồi chậm → trải nghiệm kém
+| Path | Câu hỏi thiết kế | Mô tả |
+|------|-------------------|-------|
+| Happy — AI đúng, tự tin | User thấy gì? Flow kết thúc ra sao? | AI xin lỗi + hướng dẫn + đề xuất tạo ticket → user đồng ý |
+| Low-confidence — AI không chắc | System báo "không chắc" bằng cách nào? User quyết thế nào? | AI hỏi thêm chi tiết (xe, thời gian, mã chuyến xe) |
+| Failure — AI sai | User biết AI sai bằng cách nào? Recover ra sao? | AI không detect đúng intent|
+| Correction — user sửa | User sửa bằng cách nào? Data đó đi vào đâu? |User bổ sung thông tin → hệ thống cập nhật |
 
-Giải pháp:
+Feature: Mất đồ
 
-AI chatbot hiểu tiếng Việt
-Trả lời theo policy
-Có thể thực hiện action (tạo ticket)
-2. 👤 User Personas
-2.1 Khách hàng
-Muốn:
-hỏi nhanh
-giải quyết vấn đề ngay
-Pain:
-chờ tổng đài lâu
-2.2 Nhân viên CSKH
-Muốn:
-giảm workload
-Pain:
-xử lý câu hỏi lặp lại
-3. 🎯 Use Cases chính
-ID	Use Case	Mô tả
-UC1	Hỏi thông tin	Giá cước, chính sách
-UC2	Khiếu nại	Tài xế, chuyến đi
-UC3	Mất đồ	Tạo ticket
-UC4	Huỷ chuyến	Hướng dẫn
-UC5	FAQ	Trả lời tự động
-4. 🧠 Functional Requirements
-4.1 Chat AI
-Nhận input tiếng Việt tự nhiên
-Hiểu intent:
-hỏi thông tin
-khiếu nại
-yêu cầu hỗ trợ
-4.2 RAG (Knowledge Base)
-Truy xuất từ:
-FAQ
-policy nội bộ
-Trả lời đúng context
-4.3 Ticket Simulation
-Khi detect:
-“khiếu nại”
-“mất đồ”
-→ tạo ticket giả lập
-4.4 Context Memory
-Giữ lịch sử chat trong session
-5. ⚙️ Non-functional Requirements
-Response < 3s
-UI đơn giản, dễ dùng
-Demo chạy local (không phụ thuộc backend thật)
-Scale: không cần (hackathon)
-6. 🏗️ System Architecture
-[Frontend - Streamlit]
-        ↓
-[Backend Logic]
-        ↓
-[LLM API (GPT/Gemini)]
-        ↓
-[Vector DB (FAQ)]
-7. 🧩 Components
-7.1 Frontend
-Chat UI
-Input box
-Hiển thị response
-7.2 Backend
-Prompt builder
-Intent detection (LLM-based)
-7.3 LLM Layer
-Model: GPT / Gemini
-Role:
-hiểu câu hỏi
-generate response
-7.4 Knowledge Base
-File:
-faq.txt
-Embedding + search
-7.5 Tool Layer
-create_ticket()
-log_issue()
-8. 🔄 Flow xử lý
-User Input
-   ↓
-Intent Detection (LLM)
-   ↓
-RAG (FAQ retrieval)
-   ↓
-LLM Response
-   ↓
-Check action → tạo ticket (nếu cần)
-   ↓
-Return to UI
-9. 🗂️ Data Design
-FAQ sample:
-{
-  "question": "Huỷ chuyến thế nào?",
-  "answer": "Bạn có thể huỷ miễn phí trong 2 phút đầu"
-}
-Ticket sample:
-{
-  "id": "T001",
-  "type": "lost_item",
-  "status": "created"
-}
-10. 🖥️ UI Mock
----------------------------
-🚗 Xanh SM AI Support
----------------------------
-[ Bạn cần hỗ trợ gì? ]
+Trigger:
+User: “Tôi để quên ví trên xe”
+Feature: Mất đồ
 
-User: Tôi bị tài xế đi vòng
-AI: Xin lỗi bạn...
+Trigger:
+User: “Tôi để quên ví trên xe”
 
-👉 [Tạo ticket]
-11. 🎬 Demo Scenario
-Scenario 1:
-User: “Tôi muốn huỷ chuyến”
-AI: trả lời policy
-Scenario 2:
-User: “Tôi bị mất đồ”
-AI:
-hỏi thêm info
-tạo ticket
-12. 📊 Success Metrics
-Accuracy trả lời: ~80%
-Thời gian phản hồi: <3s
-Demo flow mượt
-13. 🚀 Future Work
-Kết nối backend thật
-Tích hợp app mobile
-Voice assistant
-Multi-agent system
-💡 Bonus (ăn điểm judge)
+|Path	|Câu hỏi thiết kế	|Mô tả|  
+|------|-------------------|-------|
+|Happy	|Flow end?	|AI hỏi thêm info → tạo ticket thành công
+|Low-confidence	|Không chắc?	|AI hỏi thêm chi tiết (xe, thời gian)
+|Failure	|Sai?	|AI không detect đúng intent
+|Correction	|Sửa?	|User bổ sung thông tin → hệ thống cập nhật
+Feature: FAQ
+
+Trigger:
+User: “Huỷ chuyến thế nào?”
+
+|Path	|Câu hỏi thiết kế	|Mô tả|
+|------|-------------------|-------|
+|Happy	|AI trả lời đúng từ FAQ
+|Low-confidence	|AI trả lời “không chắc”
+|Failure	|AI hallucinate
+|Correction	|User phản hồi lại
+---
+
+## 3. Eval metrics + threshold
+
+**Optimize precision hay recall?** ☑ Precision · ☐ Recall
+Tại sao? → CSKH cần trả lời đúng, sai → mất trust ngay
+Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không chính xác → user bỏ dùng.
+
+| Metric	|Threshold	|Red flag (dừng khi)
+|Intent classification accuracy	|≥85%	|<70%
+|FAQ answer accuracy	|≥80%	|<60%
+|User accept rate	|≥70%	|<50%
+|Latency	|<3s	|>5s
+
+---
+
+## 4. Top 3 failure modes
+
+*Liệt kê cách product có thể fail — không phải list features.*
+*"Failure mode nào user KHÔNG BIẾT bị sai? Đó là cái nguy hiểm nhất."*
+
+|#	|Trigger	|Hậu quả	|Mitigation|
+|------|-------------------|-------|
+|1	|Prompt không rõ / thiếu data	|AI hallucinate	|Dùng RAG + fallback “không chắc”
+|2	|Hiểu sai intent	|Gọi sai action	|Thêm bước hỏi lại (clarification)
+|3	|Thiếu context	|Trả lời generic	|Lưu lịch sử chat
+---
+
+## 5. ROI 3 kịch bản
+
+|Conservative	|Realistic	|Optimistic|
+|------|-------------------|-------|
+|Assumption	|100 user/ngày, 60% hài lòng	|500 user/ngày, 80%	|2000 user/ngày, 90%|
+|Cost	|$20/ngày	|$100/ngày	|$400/ngày|
+|Benefit	|Giảm 2h CSKH/ngày	|Giảm 8h/ngày	|Giảm 20h + tăng retention|
+|Net	|+	|++	|<insert>|
+**Kill criteria:** 
+→ Dừng nếu cost > benefit trong 2 tháng liên tục
+
+---
+
+## 6. Mini AI spec (1 trang)
+Sản phẩm là một AI Customer Support Agent cho Xanh SM, giúp xử lý các yêu cầu chăm sóc khách hàng lặp lại như khiếu nại, mất đồ và FAQ.
+
+Hệ thống sử dụng LLM để hiểu ngôn ngữ tự nhiên tiếng Việt, phân loại intent và truy xuất thông tin từ FAQ (RAG). Điểm khác biệt chính là AI không chỉ trả lời mà còn có khả năng ra quyết định hành động, ví dụ như đề xuất tạo ticket khi cần thiết.
+
+Sản phẩm theo hướng augmentation, nghĩa là AI hỗ trợ và đề xuất, còn người dùng vẫn kiểm soát quyết định cuối cùng. Điều này giúp giảm rủi ro khi AI sai.
+
+Chất lượng hệ thống ưu tiên precision (≥85%) để đảm bảo độ tin cậy. Các rủi ro chính bao gồm hallucination và hiểu sai intent, được giảm thiểu bằng cách:
+
+sử dụng knowledge base (RAG)
+hỏi lại khi không chắc (clarification)
+cho phép user chỉnh sửa (correction)
+
+Dữ liệu từ hành vi người dùng (chỉnh sửa, phản hồi) sẽ tạo thành một data flywheel, giúp hệ thống ngày càng chính xác hơn theo thời gian.
