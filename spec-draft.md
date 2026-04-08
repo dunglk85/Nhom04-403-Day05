@@ -43,12 +43,7 @@ User nhập: “Tôi bị tài xế đi vòng”
 | Failure — AI sai | User biết AI sai bằng cách nào? Recover ra sao? | AI không detect đúng intent|
 | Correction — user sửa | User sửa bằng cách nào? Data đó đi vào đâu? |User bổ sung thông tin → hệ thống cập nhật |
 
-Feature: Mất đồ
-
-Trigger:
-User: “Tôi để quên ví trên xe”
-Feature: Mất đồ
-
+### Feature: Mất đồ
 Trigger:
 User: “Tôi để quên ví trên xe”
 
@@ -58,8 +53,8 @@ User: “Tôi để quên ví trên xe”
 |Low-confidence	|Không chắc?	|AI hỏi thêm chi tiết (xe, thời gian)|
 |Failure	|Sai?	|AI không detect đúng intent|
 |Correction	|Sửa?	|User bổ sung thông tin → hệ thống cập nhật|
-Feature: FAQ
 
+### Feature: FAQ
 Trigger:
 User: “Huỷ chuyến thế nào?”
 
