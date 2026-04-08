@@ -69,10 +69,11 @@ User: “Huỷ chuyến thế nào?”
 ## 3. Eval metrics + threshold
 
 **Optimize precision hay recall?** ☑ Precision · ☐ Recall
-Tại sao? → CSKH cần trả lời đúng, sai → mất trust ngay
-Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không chính xác → user bỏ dùng.
+**Tại sao? → CSKH cần trả lời đúng, sai → mất trust ngay
+**Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không chính xác → user bỏ dùng.
 
-| Metric	|Threshold	|Red flag (dừng khi)
+| Metric	|Threshold	|Red flag (dừng khi)|
+|------|-------------------|-------|
 |Intent classification accuracy	|≥85%	|<70%|
 |FAQ answer accuracy	|≥80%	|<60%|
 |User accept rate	|≥70%	|<50%|
