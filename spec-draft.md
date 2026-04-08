@@ -87,7 +87,7 @@ User: “Huỷ chuyến thế nào?”
 *"Failure mode nào user KHÔNG BIẾT bị sai? Đó là cái nguy hiểm nhất."*
 
 |#	|Trigger	|Hậu quả	|Mitigation|
-|------|-------------------|-------|
+|------|---------|----------|-------|
 |1	|Prompt không rõ / thiếu data	|AI hallucinate	|Dùng RAG + fallback “không chắc”|
 |2	|Hiểu sai intent	|Gọi sai action	|Thêm bước hỏi lại (clarification)|
 |3	|Thiếu context	|Trả lời generic	|Lưu lịch sử chat|
