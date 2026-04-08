@@ -95,12 +95,13 @@ User: “Huỷ chuyến thế nào?”
 
 ## 5. ROI 3 kịch bản
 
-|Conservative	|Realistic	|Optimistic|
-|------|-------------------|-------|
-|Assumption	|100 user/ngày, 60% hài lòng	|500 user/ngày, 80%	|2000 user/ngày, 90%|
-|Cost	|$20/ngày	|$100/ngày	|$400/ngày|
-|Benefit	|Giảm 2h CSKH/ngày	|Giảm 8h/ngày	|Giảm 20h + tăng retention|
+||Conservative	|Realistic	|Optimistic|
+|--|----|-------------------|-------|
+|Assumption	|100 user/ngày, 60% hài lòng|500 user/ngày, 80%	|2000 user/ngày, 90%|
+|Cost	|$20/ngày| $100/ngày	|$400/ngày|
+|Benefit	|Giảm 2h CSKH/ngày|Giảm 8h/ngày	|Giảm 20h + tăng retention|
 |Net	|+	|++	|+++|
+
 **Kill criteria:** 
 → Dừng nếu cost > benefit trong 2 tháng liên tục
 
