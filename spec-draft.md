@@ -26,7 +26,8 @@ Justify: User vẫn là người quyết định cuối cùng (chấp nhận câ
    user không cần tạo ticket
    số lần user hỏi lại
 3. Data thuộc loại nào? ☐ User-specific · ☑ Domain-specific · ☑ Real-time · ☑ Human-judgment · ☐ Khác: ___
-   Có marginal value không? (Model đã biết cái này chưa?) Có. Dữ liệu CSKH (complaint, lost-item) mang tính đặc thù, model chung chưa tối ưu tốt.
+   
+   Có marginal value không? (Model đã biết cái này chưa?):  Có. Dữ liệu CSKH (complaint, lost-item) mang tính đặc thù, model chung chưa tối ưu tốt.
 
 ---
 
