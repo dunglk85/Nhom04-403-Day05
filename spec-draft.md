@@ -52,23 +52,23 @@ Feature: Mất đồ
 Trigger:
 User: “Tôi để quên ví trên xe”
 
-|Path	|Câu hỏi thiết kế	|Mô tả|  
-|------|-------------------|-------|
-|Happy	|Flow end?	|AI hỏi thêm info → tạo ticket thành công
-|Low-confidence	|Không chắc?	|AI hỏi thêm chi tiết (xe, thời gian)
-|Failure	|Sai?	|AI không detect đúng intent
-|Correction	|Sửa?	|User bổ sung thông tin → hệ thống cập nhật
+|Path|Mô tả|  
+|------|-------|
+|Happy	|Flow end?	|AI hỏi thêm info → tạo ticket thành công|
+|Low-confidence	|Không chắc?	|AI hỏi thêm chi tiết (xe, thời gian)|
+|Failure	|Sai?	|AI không detect đúng intent|
+|Correction	|Sửa?	|User bổ sung thông tin → hệ thống cập nhật|
 Feature: FAQ
 
 Trigger:
 User: “Huỷ chuyến thế nào?”
 
-|Path	|Câu hỏi thiết kế	|Mô tả|
-|------|-------------------|-------|
-|Happy	|AI trả lời đúng từ FAQ
-|Low-confidence	|AI trả lời “không chắc”
+|Path		|Mô tả|
+|-------|-------|
+|Happy	|AI trả lời đúng từ FAQ|
+|Low-confidence	|AI trả lời “không chắc”|
 |Failure	|AI hallucinate
-|Correction	|User phản hồi lại
+|Correction	|User phản hồi lại|
 ---
 
 ## 3. Eval metrics + threshold
@@ -78,10 +78,10 @@ Tại sao? → CSKH cần trả lời đúng, sai → mất trust ngay
 Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không chính xác → user bỏ dùng.
 
 | Metric	|Threshold	|Red flag (dừng khi)
-|Intent classification accuracy	|≥85%	|<70%
-|FAQ answer accuracy	|≥80%	|<60%
-|User accept rate	|≥70%	|<50%
-|Latency	|<3s	|>5s
+|Intent classification accuracy	|≥85%	|<70%|
+|FAQ answer accuracy	|≥80%	|<60%|
+|User accept rate	|≥70%	|<50%|
+|Latency	|<3s	|>5s|
 
 ---
 
@@ -92,9 +92,9 @@ Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không
 
 |#	|Trigger	|Hậu quả	|Mitigation|
 |------|-------------------|-------|
-|1	|Prompt không rõ / thiếu data	|AI hallucinate	|Dùng RAG + fallback “không chắc”
-|2	|Hiểu sai intent	|Gọi sai action	|Thêm bước hỏi lại (clarification)
-|3	|Thiếu context	|Trả lời generic	|Lưu lịch sử chat
+|1	|Prompt không rõ / thiếu data	|AI hallucinate	|Dùng RAG + fallback “không chắc”|
+|2	|Hiểu sai intent	|Gọi sai action	|Thêm bước hỏi lại (clarification)|
+|3	|Thiếu context	|Trả lời generic	|Lưu lịch sử chat|
 ---
 
 ## 5. ROI 3 kịch bản
@@ -104,7 +104,7 @@ Nếu sai ngược lại thì chuyện gì xảy ra? trả lời lan man, không
 |Assumption	|100 user/ngày, 60% hài lòng	|500 user/ngày, 80%	|2000 user/ngày, 90%|
 |Cost	|$20/ngày	|$100/ngày	|$400/ngày|
 |Benefit	|Giảm 2h CSKH/ngày	|Giảm 8h/ngày	|Giảm 20h + tăng retention|
-|Net	|+	|++	|<insert>|
+|Net	|+	|++	|+++|
 **Kill criteria:** 
 → Dừng nếu cost > benefit trong 2 tháng liên tục
 
