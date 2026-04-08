@@ -1,7 +1,9 @@
 # SPEC — AI Product Hackathon
 
 **Nhóm:** Nhóm 4 
+
 **Track:** ☐ VinFast · ☐ Vinmec · ☐ VinUni-VinSchool ·  ☑ XanhSM · ☐ Open
+
 **Problem statement (1 câu):** Khách hàng của Xanh SM phải chờ đợi lâu để được hỗ trợ cho các vấn đề lặp lại (khiếu nại, mất đồ, FAQ), trong khi một AI agent có thể hiểu ngữ cảnh và xử lý phần lớn các yêu cầu này ngay lập tức.
 
 ---
