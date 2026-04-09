@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xanh SM</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body { background: #e8e8e8; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .phone { width: 375px; height: 780px; background: #f5f5f5; border-radius: 40px; border: 3px solid #bbb; overflow: hidden; position: relative; box-shadow: 0 8px 40px rgba(0,0,0,0.18); }
+    .screen { width: 100%; height: 100%; position: absolute; top: 0; left: 0; display: none; flex-direction: column; background: #fff; overflow: hidden; }
+    .screen.active { display: flex; }
+
+    /* Status bar */
+    .status-bar { padding: 8px 18px 4px; font-size: 11px; color: #333; display: flex; justify-content: space-between; background: #fff; flex-shrink: 0; }
+    .status-bar.dark { background: #1ABFA5; color: white; }
+
+    /* Headers */
+    .teal-header { background: #1ABFA5; color: white; padding: 12px 16px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .teal-header .title { font-size: 15px; font-weight: 600; flex: 1; }
+    .back-btn { cursor: pointer; font-size: 20px; line-height: 1; }
+
+    /* Scrollable body */
+    .scroll-body { flex: 1; overflow-y: auto; padding-bottom: 68px; }
+    .scroll-body::-webkit-scrollbar { display: none; }
+
+    /* Bottom nav */
+    .bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #eee; display: flex; height: 60px; z-index: 5; }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9px; color: #999; cursor: pointer; gap: 3px; }
+    .nav-item.active { color: #1ABFA5; }
+    .nav-icon { font-size: 20px; }
+
+    /* FAB chat button */
+    .chat-fab { position: absolute; bottom: 74px; right: 16px; width: 52px; height: 52px; background: #1ABFA5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; box-shadow: 0 4px 14px rgba(26,191,165,0.5); z-index: 10; animation: pulse 2.5s infinite; }
+    @keyframes pulse { 0%,100%{box-shadow:0 4px 14px rgba(26,191,165,0.4)} 50%{box-shadow:0 4px 24px rgba(26,191,165,0.75)} }
+
+    /* Home */
+    .greeting { padding: 14px 18px 4px; font-size: 19px; font-weight: 800; color: #1a1a1a; }
+    .greeting span { color: #1ABFA5; }
+    .aqi-row { padding: 2px 18px 8px; font-size: 11px; color: #888; }
+    .search-bar { margin: 6px 14px 10px; background: #f0f0f0; border-radius: 28px; padding: 11px 18px; font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 8px; }
+    .section-label { padding: 10px 16px 6px; font-size: 13px; font-weight: 700; color: #222; }
+    .service-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; padding: 4px 14px 10px; }
+    .svc-item { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; }
+    .svc-icon { width: 56px; height: 56px; background: #e8f9f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; position: relative; transition: transform .15s; }
+    .svc-item:hover .svc-icon { transform: scale(1.07); }
+    .svc-icon .hot-badge { position: absolute; top: -5px; right: -5px; background: #ff5252; color: white; font-size: 7px; font-weight: 800; padding: 2px 5px; border-radius: 7px; }
+    .svc-label { font-size: 10px; color: #444; text-align: center; line-height: 1.3; }
+    .promo-banner { margin: 4px 14px 10px; background: linear-gradient(120deg,#1ABFA5 60%,#0d9e87); border-radius: 16px; padding: 16px 18px; color: white; cursor: pointer; }
+    .promo-banner .big { font-size: 24px; font-weight: 900; }
+    .promo-banner .sub { font-size: 12px; opacity: .9; margin-top: 3px; }
+    .promo-banner .date { font-size: 10px; opacity: .7; margin-top: 5px; }
+    .restaurant-list { padding: 0 14px; }
+    .rest-card { border: 1px solid #eee; border-radius: 14px; overflow: hidden; margin-bottom: 10px; cursor: pointer; }
+    .rest-img { height: 96px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 36px; overflow: hidden; }
+    .rest-img img { width: 100%; height: 100%; object-fit: cover; }
+    .rest-info { padding: 9px 12px; }
+    .rest-name { font-size: 13px; font-weight: 700; color: #222; }
+    .rest-meta { font-size: 10px; color: #aaa; margin-top: 3px; }
+
+    /* Chat */
+    .chat-header { background: #1ABFA5; color: white; padding: 12px 14px; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .chat-avatar { width: 38px; height: 38px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .chat-name { font-size: 15px; font-weight: 700; }
+    .chat-status { font-size: 10px; opacity: .85; }
+    .quick-chips { display: flex; gap: 7px; padding: 9px 12px; overflow-x: auto; flex-shrink: 0; background: #fafafa; border-bottom: 1px solid #eee; }
+    .quick-chips::-webkit-scrollbar { display: none; }
+    .chip { background: #e8f9f6; color: #0d9e87; border-radius: 16px; padding: 6px 12px; font-size: 10px; white-space: nowrap; cursor: pointer; border: 1px solid #b2efe5; flex-shrink: 0; transition: all .15s; }
+    .chip:hover { background: #1ABFA5; color: white; }
+    .messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 12px; }
+    .messages::-webkit-scrollbar { display: none; }
+    .msg { max-width: 80%; }
+    .msg.bot { align-self: flex-start; }
+    .msg.user { align-self: flex-end; }
+    .msg-bubble { padding: 10px 14px; border-radius: 16px; font-size: 12px; line-height: 1.6; }
+    .msg.bot .msg-bubble { background: #f0f0f0; color: #222; border-bottom-left-radius: 4px; }
+    .msg.user .msg-bubble { background: #1ABFA5; color: white; border-bottom-right-radius: 4px; }
+    .msg-sender { font-size: 10px; color: #aaa; margin-bottom: 3px; }
+    .chat-input-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-top: 1px solid #eee; background: #fff; flex-shrink: 0; }
+    .chat-input { flex: 1; border: 1px solid #ddd; border-radius: 22px; padding: 9px 14px; font-size: 12px; outline: none; background: #fafafa; }
+    .chat-input:focus { border-color: #1ABFA5; background: #fff; }
+    .send-btn { width: 38px; height: 38px; background: #1ABFA5; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: white; font-size: 15px; flex-shrink: 0; }
+    .typing { display: flex; gap: 5px; align-items: center; padding: 10px 14px; }
+    .typing span { width: 7px; height: 7px; background: #aaa; border-radius: 50%; animation: bounce 1.2s infinite; }
+    .typing span:nth-child(2) { animation-delay: .2s; }
+    .typing span:nth-child(3) { animation-delay: .4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
+    .ticket-box { background: #e8f9f6; border-radius: 10px; padding: 10px 12px; margin-top: 7px; font-size: 11px; color: #0d6e56; border: 1px solid #b2efe5; line-height: 1.7; }
+    .nav-link { color: #1ABFA5; text-decoration: underline; cursor: pointer; font-size: 11px; }
+
+    /* Book ride */
+    .dest-bar { background: #f7f7f7; padding: 10px 16px; border-bottom: 1px solid #eee; flex-shrink: 0; }
+    .dest-input { background: white; border: 1.5px solid #1ABFA5; border-radius: 22px; padding: 10px 16px; font-size: 13px; color: #1ABFA5; display: flex; align-items: center; gap: 8px; }
+    .filter-row { display: flex; gap: 8px; padding: 8px 14px; flex-shrink: 0; }
+    .filter-btn { background: #222; color: #fff; border-radius: 18px; padding: 6px 16px; font-size: 11px; cursor: pointer; }
+    .filter-btn.outline { background: #f0f0f0; color: #555; }
+    .place-list { overflow-y: auto; flex: 1; }
+    .place-item { padding: 12px 16px; border-bottom: 1px solid #f3f3f3; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+    .place-item:hover { background: #f9f9f9; }
+    .place-pin { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+    .place-name { font-size: 13px; font-weight: 700; color: #222; }
+    .place-addr { font-size: 10px; color: #aaa; margin-top: 2px; }
+    .place-dist { font-size: 10px; color: #aaa; margin-left: auto; flex-shrink: 0; }
+
+    /* Food */
+    .food-search { margin: 8px 14px; background: #f5f5f5; border-radius: 22px; padding: 10px 16px; font-size: 12px; color: #aaa; display: flex; gap: 8px; }
+    .food-cats { display: flex; gap: 8px; padding: 6px 14px 8px; overflow-x: auto; flex-shrink: 0; }
+    .food-cats::-webkit-scrollbar { display: none; }
+    .food-cat { background: #f0f0f0; border-radius: 14px; padding: 6px 14px; font-size: 11px; white-space: nowrap; cursor: pointer; }
+    .food-cat.active { background: #1ABFA5; color: white; font-weight: 600; }
+    .promo-strip { margin: 4px 14px 8px; background: #fff3e0; border-radius: 12px; padding: 10px 14px; }
+    .promo-strip .pt { font-size: 12px; font-weight: 700; color: #e65100; }
+    .promo-strip .ps { font-size: 10px; color: #bf360c; margin-top: 3px; }
+
+    /* Delivery */
+    .delivery-tabs { display: flex; margin: 12px 14px 0; background: #f0f0f0; border-radius: 12px; padding: 4px; flex-shrink: 0; }
+    .dtab { flex: 1; text-align: center; padding: 8px; font-size: 12px; border-radius: 9px; cursor: pointer; color: #777; }
+    .dtab.active { background: white; font-weight: 700; color: #1ABFA5; box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+    .vehicle-card { margin: 12px 14px; background: #f8f8f8; border-radius: 18px; padding: 16px; }
+    .v-img { height: 140px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; background: #eef; }
+    .v-img img { width: 100%; height: 100%; object-fit: contain; }
+    .v-name { font-size: 16px; font-weight: 800; color: #222; margin-top: 10px; }
+    .v-desc { font-size: 11px; color: #777; margin-top: 4px; }
+    .v-stats { display: flex; gap: 8px; margin-top: 10px; }
+    .v-stat { background: white; border-radius: 9px; padding: 6px 10px; font-size: 10px; color: #555; }
+    .v-price { font-size: 18px; font-weight: 800; color: #1ABFA5; margin-top: 10px; }
+    .big-cta { margin: 8px 14px; background: #1ABFA5; color: white; border-radius: 28px; padding: 14px; text-align: center; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .15s; }
+    .big-cta:hover { opacity: .9; }
+    .features-row { display: flex; gap: 8px; padding: 4px 14px 14px; overflow-x: auto; }
+    .features-row::-webkit-scrollbar { display: none; }
+    .feat-card { background: #1ABFA5; color: white; border-radius: 12px; padding: 12px; font-size: 10px; min-width: 100px; line-height: 1.5; flex-shrink: 0; }
+
+    /* Promo */
+    .gift-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 14px 6px; }
+    .gift-card { background: #e8f9f6; border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; border: 1px solid #b2efe5; }
+    .gift-card .gi { font-size: 28px; }
+    .gift-card .gn { font-size: 12px; font-weight: 700; color: #0d6e56; margin-top: 8px; }
+    .gift-card .gs { font-size: 10px; color: #aaa; margin-top: 4px; }
+    .promo-list { padding: 0 14px 14px; }
+    .promo-card { border-radius: 16px; margin-bottom: 12px; overflow: hidden; padding: 16px 18px; color: white; }
+    .promo-card.teal { background: #1ABFA5; }
+    .promo-card.orange { background: #ff7043; }
+    .promo-card.indigo { background: #5c6bc0; }
+    .promo-card .ptitle { font-size: 20px; font-weight: 900; }
+    .promo-card .psub { font-size: 12px; opacity: .9; margin-top: 4px; }
+    .promo-card .pdate { font-size: 10px; opacity: .7; margin-top: 6px; }
+    .promo-card .vchip { display: inline-block; background: rgba(255,255,255,0.25); border-radius: 7px; padding: 3px 9px; font-size: 11px; margin-top: 8px; font-weight: 700; }
+    .promo-img { width: 100%; height: 130px; object-fit: cover; border-radius: 12px; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- ==================== HOME ==================== -->
+  <div class="screen active" id="screen-home">
+    <div class="status-bar"><span>7:30</span><span>📶 🔋100%</span></div>
+    <div class="scroll-body">
+      <div class="greeting">Xin chào, <span>Ngô Gia Bảo</span> 👋</div>
+      <div class="aqi-row">142 AQI+ &nbsp;•&nbsp; VinClub</div>
+      <div class="search-bar">📍 Bạn muốn đi đâu? &nbsp; 🕐 Hẹn giờ</div>
+      <div class="section-label">Dịch vụ</div>
+      <div class="service-grid">
+        <div class="svc-item" onclick="goScreen('screen-book')"><div class="svc-icon">🚗</div><div class="svc-label">Đặt ô tô</div></div>
+        <div class="svc-item" onclick="goScreen('screen-book')"><div class="svc-icon">✈️</div><div class="svc-label">Đi sân bay</div></div>
+        <div class="svc-item" onclick="goScreen('screen-book')"><div class="svc-icon" style="background:#fff3e0">🚌<span class="hot-badge">HOT</span></div><div class="svc-label">Đi Liên tỉnh</div></div>
+        <div class="svc-item" onclick="goScreen('screen-book')"><div class="svc-icon">🛵</div><div class="svc-label">Xe máy</div></div>
+        <div class="svc-item" onclick="goScreen('screen-food')"><div class="svc-icon">🍜</div><div class="svc-label">Đặt món ăn</div></div>
+        <div class="svc-item" onclick="goScreen('screen-delivery')"><div class="svc-icon" style="background:#fff3e0">📦<span class="hot-badge">HOT</span></div><div class="svc-label">Giao hàng</div></div>
+        <div class="svc-item" onclick="goScreen('screen-promo')"><div class="svc-icon">🎁</div><div class="svc-label">Gói hội viên</div></div>
+        <div class="svc-item" onclick="goScreen('screen-promo')"><div class="svc-icon">🎀</div><div class="svc-label">Thẻ quà tặng</div></div>
+      </div>
+      <div class="promo-banner" onclick="goScreen('screen-promo')">
+        <div class="big">10% &nbsp;<span style="font-size:15px;font-weight:500">XANH CHUNG TAY</span></div>
+        <div class="sub">Ưu đãi dành cho toàn bộ khách hàng</div>
+        <div class="date">11.03 – 30.04.2026 &nbsp;•&nbsp; Tới 100K</div>
+      </div>
+      <div class="section-label">Gợi ý quán ngon</div>
+      <div class="restaurant-list">
+        <div class="rest-card">
+          <div class="rest-img"><img src="images/food.jpg" alt="food" /></div>
+          <div class="rest-info"><div class="rest-name">Matcha Di – Vụ Xuân</div><div class="rest-meta">⭐ 4.8 &nbsp;•&nbsp; 15 phút &nbsp;•&nbsp; Highlands Coffee</div></div>
+        </div>
+        <div class="rest-card">
+          <div class="rest-img"><img src="images/food.jpg" alt="food" /></div>
+          <div class="rest-info"><div class="rest-name">Cô Hương Bếp – Bún Bò</div><div class="rest-meta">⭐ 4.6 &nbsp;•&nbsp; 20 phút &nbsp;•&nbsp; Đặc sản HN</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-fab" onclick="goScreen('screen-chat')" title="Trợ lý ảo Xanh">💬</div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><div class="nav-icon">🏠</div>Trang chủ</div>
+      <div class="nav-item" onclick="goScreen('screen-home')"><div class="nav-icon">🧭</div>Hoạt động</div>
+      <div class="nav-item"><div class="nav-icon">🔍</div>Khám phá</div>
+      <div class="nav-item"><div class="nav-icon">🔔</div>Thông báo</div>
+      <div class="nav-item"><div class="nav-icon">👤</div>Tài khoản</div>
+    </div>
+  </div>
+
+  <!-- ==================== CHAT ==================== -->
+  <div class="screen" id="screen-chat">
+    <div class="status-bar dark"><span>7:35</span><span>📶 🔋99%</span></div>
+    <div class="chat-header">
+      <div class="chat-avatar">🤖</div>
+      <div>
+        <div class="chat-name">Trợ lý ảo Xanh</div>
+        <div class="chat-status" id="agent-status">● Đang hoạt động</div>
+      </div>
+      <div style="margin-left:auto;cursor:pointer;font-size:20px;" onclick="goScreen('screen-home')">✕</div>
+    </div>
+    <div class="quick-chips">
+      <!-- <div class="chip" onclick="sendMsg('Tôi muốn đặt xe')">🚗 Đặt xe</div>
+      <div class="chip" onclick="sendMsg('Đặt đồ ăn')">🍜 Đặt đồ ăn</div>
+      <div class="chip" onclick="sendMsg('Giao hàng')">📦 Giao hàng</div>
+      <div class="chip" onclick="sendMsg('Khuyến mãi')">🎁 Khuyến mãi</div> -->
+      <div class="chip" onclick="sendMsg('Khiếu nại tài xế')">⚠️ Khiếu nại</div>
+      <div class="chip" onclick="sendMsg('Tra cứu chuyến')">🔍 Tra cứu</div>
+    </div>
+    <div class="messages" id="msg-list">
+      <div class="msg bot">
+        <div class="msg-sender">Trợ lý ảo Xanh</div>
+        <div class="msg-bubble">Xin chào Ngô Gia Bảo! 👋 Mình có thể giúp gì cho bạn hôm nay?</div>
+      </div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" placeholder="Nhập tin nhắn..." onkeydown="if(event.key==='Enter')handleSend()" />
+      <div class="send-btn" onclick="handleSend()">➤</div>
+    </div>
+  </div>
+
+  <!-- ==================== BOOK RIDE ==================== -->
+  <div class="screen" id="screen-book">
+    <div class="status-bar"><span>7:36</span><span>📶 🔋99%</span></div>
+    <div class="teal-header">
+      <div class="back-btn" onclick="goScreen('screen-home')">←</div>
+      <div class="title">📍 Sử dụng vị trí hiện tại</div>
+      <span style="color:white;font-size:11px">Hà Nội</span>
+    </div>
+    <div class="dest-bar">
+      <div class="dest-input">🟡 Tới điểm?</div>
+    </div>
+    <div style="padding:6px 14px 4px;font-size:11px;color:#888;display:flex;align-items:center;gap:8px;flex-shrink:0">Hiển thị địa chỉ sau sát nhập tỉnh <span style="color:#1ABFA5">●</span></div>
+    <div class="filter-row">
+      <div class="filter-btn">Đề xuất</div>
+      <div class="filter-btn outline">Đã lưu</div>
+    </div>
+    <div class="place-list">
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Cổng Phụ – VinUni – Vinhomes Ocean Park</div><div class="place-addr">Xã Gia Lâm, Thành Phố Hà Nội, Việt Nam</div></div><div class="place-dist">1.1 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Bệnh viện Bạch Mai</div><div class="place-addr">78 Đường Giải Phóng, Phường Kim Liên, Hà Nội</div></div><div class="place-dist">11.4 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Bến Xe Nước Ngầm</div><div class="place-addr">1 Đường Ngọc Hồi, Phường Yên Sở, Hà Nội</div></div><div class="place-dist">11.9 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Bệnh viện Đại học Y Hà Nội</div><div class="place-addr">1 Đường Tôn Thất Tùng, Phường Kim Liên, Hà Nội</div></div><div class="place-dist">12.6 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Bến Xe Giáp Bát</div><div class="place-addr">Đường Giải Phóng, Phường Hoàng Mai, Hà Nội</div></div><div class="place-dist">11.5 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">BV Trung Ương Quân Đội 108</div><div class="place-addr">1B Đường Trần Hưng Đạo, Phường Cửa Nam, Hà Nội</div></div><div class="place-dist">9.6 km</div></div>
+      <div class="place-item"><span class="place-pin">📍</span><div style="flex:1"><div class="place-name">Technopark Tower</div><div class="place-addr">Đại Dương, Vinhomes Ocean Park, Xã Gia Lâm, Hà Nội</div></div><div class="place-dist">1.5 km</div></div>
+    </div>
+  </div>
+
+  <!-- ==================== FOOD ==================== -->
+  <div class="screen" id="screen-food">
+    <div class="status-bar"><span>12:04</span><span>📶 🔋78%</span></div>
+    <div class="teal-header">
+      <div class="back-btn" onclick="goScreen('screen-home')">←</div>
+      <div class="title" style="font-size:12px">Giao đến: Cổng Phụ – VinUni ▾</div>
+      <span>❤️</span><span>🛒</span>
+    </div>
+    <div style="padding:8px 14px;flex-shrink:0"><div class="food-search">🔍 McDonald's – 3 Món Chỉ 69K</div></div>
+    <div class="food-cats">
+      <div class="food-cat active">Tất cả</div>
+      <div class="food-cat">Bún – Phở – Mỳ</div>
+      <div class="food-cat">Cơm – Xôi</div>
+      <div class="food-cat">Đồ ăn nhanh</div>
+      <div class="food-cat">Trà sữa – Cà phê</div>
+      <div class="food-cat">Bánh</div>
+    </div>
+    <div class="scroll-body">
+      <div style="padding:0 14px 8px;flex-shrink:0">
+        <img src="images/food.jpg" alt="food promo" style="width:100%;border-radius:14px;object-fit:cover;height:120px;" />
+      </div>
+      <div class="promo-strip">
+        <div class="pt">🔥 Giật Deal Thương Hiệu – Giảm Đến 50%</div>
+        <div class="ps">KFC Combo 85K &nbsp;•&nbsp; Phúc Long Mua 1 Tặng 1 &nbsp;•&nbsp; Lotteria Combo 109K</div>
+      </div>
+      <div class="restaurant-list" style="padding:8px 14px 0">
+        <div class="rest-card">
+          <div class="rest-img"><img src="images/food.jpg" alt="" /></div>
+          <div class="rest-info"><div class="rest-name">KFC – Combo Độc Quyền 85K</div><div class="rest-meta">⭐ 4.7 &nbsp;•&nbsp; 25 phút &nbsp;•&nbsp; FREESHIP</div></div>
+        </div>
+        <div class="rest-card">
+          <div class="rest-img" style="background:#e8f5e9"><span style="font-size:36px">🧋</span></div>
+          <div class="rest-info"><div class="rest-name">Phúc Long Coffee & Tea</div><div class="rest-meta">⭐ 4.9 &nbsp;•&nbsp; 20 phút &nbsp;•&nbsp; Mua 1 Tặng 1</div></div>
+        </div>
+        <div class="rest-card">
+          <div class="rest-img"><img src="images/food.jpg" alt="" /></div>
+          <div class="rest-info"><div class="rest-name">Cô Hương Bếp – Bún Bò</div><div class="rest-meta">⭐ 4.6 &nbsp;•&nbsp; 18 phút &nbsp;•&nbsp; Giảm 100K</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== DELIVERY ==================== -->
+  <div class="screen" id="screen-delivery">
+    <div class="status-bar"><span>12:05</span><span>📶 🔋78%</span></div>
+    <div class="teal-header">
+      <div class="back-btn" onclick="goScreen('screen-home')">←</div>
+      <div class="title">Dịch vụ giao hàng</div>
+      <span style="margin-left:auto">📋</span>
+    </div>
+    <div class="delivery-tabs">
+      <div class="dtab active">Xe tải nhỏ</div>
+      <div class="dtab">Xe máy</div>
+    </div>
+    <div class="scroll-body">
+      <div class="vehicle-card">
+        <div style="background:#1ABFA5;color:white;font-size:9px;font-weight:800;border-radius:7px;display:inline-block;padding:2px 9px;margin-bottom:8px">NEW SERVICES</div>
+        <div class="v-img"><img src="images/vanchuyen.jpg" alt="xe tải" /></div>
+        <div class="v-name">Xe tải nhỏ</div>
+        <div class="v-desc">Phù hợp chở đồ nội thất, vật liệu xây dựng nhẹ, hàng hóa số lượng vừa và nhỏ</div>
+        <div class="v-stats">
+          <div class="v-stat">Tải trọng: 580kg</div>
+          <div class="v-stat">1.47 × 1.45 × 1.22 m</div>
+        </div>
+        <div class="v-price">Giá từ 110.000đ</div>
+      </div>
+      <div class="big-cta">Chọn xe tải nhỏ</div>
+      <div class="section-label" style="margin-top:14px">Xanh hỗ trợ bạn</div>
+      <div class="features-row">
+        <div class="feat-card">📍 Xem vị trí xe theo thời gian thực</div>
+        <div class="feat-card">🗺️ Đơn giao nhiều điểm</div>
+        <div class="feat-card">📦 Hỗ trợ bốc xếp tại chỗ</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PROMO ==================== -->
+  <div class="screen" id="screen-promo">
+    <div class="status-bar"><span>12:05</span><span>📶 🔋78%</span></div>
+    <div class="teal-header">
+      <div class="back-btn" onclick="goScreen('screen-home')">←</div>
+      <div class="title">🎀 Thẻ quà tặng & Ưu đãi</div>
+    </div>
+    <div class="scroll-body">
+      <div class="gift-grid">
+        <div class="gift-card"><div class="gi">🎫</div><div class="gn">Nạp thẻ quà tặng</div><div class="gs">Nạp thẻ vật lý ›</div></div>
+        <div class="gift-card"><div class="gi">💌</div><div class="gn">Thẻ quà của tôi</div><div class="gs">Quản lý thẻ ›</div></div>
+      </div>
+      <div class="section-label">Ưu đãi hiện tại</div>
+      <div class="promo-list">
+        <div class="promo-card teal">
+          <div class="ptitle">10% – XANH CHUNG TAY</div>
+          <div class="psub">Ưu đãi toàn bộ khách hàng</div>
+          <div class="pdate">11.03 – 30.04.2026 &nbsp;•&nbsp; Tới 100K</div>
+          <div class="vchip">XANH10</div>
+        </div>
+        <div class="promo-card orange">
+          <img src="images/vc.jpg" alt="promo" class="promo-img" />
+          <div class="ptitle" style="margin-top:8px">Em Xinh – Lỗi Anh 💚</div>
+          <div class="psub">Tặng thẻ đi xe cho người thương</div>
+          <div class="vchip">COUPLE2026</div>
+        </div>
+        <div class="promo-card indigo">
+          <div class="ptitle">FREESHIP – Xanh Ngon</div>
+          <div class="psub">Miễn phí giao hàng đơn từ 50K</div>
+          <div class="pdate">Hôm nay &nbsp;•&nbsp; Còn 2 ngày</div>
+          <div class="vchip">FREEXANH</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end phone -->
+
+<script>
+  const API_BASE = 'http://localhost:8000';
+  let sessionId = 'demo-' + Date.now();
+  let isTyping = false;
+
+  function goScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function addMsg(role, text, extraHtml = '') {
+    const list = document.getElementById('msg-list');
+    const div = document.createElement('div');
+    div.className = 'msg ' + (role === 'user' ? 'user' : 'bot');
+    let inner = '';
+    if (role !== 'user') inner += '<div class="msg-sender">Trợ lý ảo Xanh</div>';
+    inner += '<div class="msg-bubble">' + text.replace(/\n/g,'<br>') + extraHtml + '</div>';
+    div.innerHTML = inner;
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+  }
+
+  function showTyping() {
+    const list = document.getElementById('msg-list');
+    const div = document.createElement('div');
+    div.className = 'msg bot'; div.id = 'typing-bubble';
+    div.innerHTML = '<div class="msg-bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+    list.appendChild(div); list.scrollTop = list.scrollHeight;
+  }
+  function hideTyping() { const t = document.getElementById('typing-bubble'); if(t) t.remove(); }
+
+  function processNavigation(text) {
+    if (text.includes('[NAVIGATE:book]')) setTimeout(() => goScreen('screen-book'), 700);
+    if (text.includes('[NAVIGATE:food]')) setTimeout(() => goScreen('screen-food'), 700);
+    if (text.includes('[NAVIGATE:delivery]')) setTimeout(() => goScreen('screen-delivery'), 700);
+    if (text.includes('[NAVIGATE:promo]')) setTimeout(() => goScreen('screen-promo'), 700);
+  }
+
+  function processExtra(text) {
+    if (text.includes('TICKET') && text.includes('Mã ticket:')) {
+      return `<div class="ticket-box">` + text.split('\n').join('<br>') + `</div>`;
+    }
+    if (text.includes('Thông tin chuyến đi')) {
+      return `<div class="ticket-box">` + text.split('\n').join('<br>') + `</div>`;
+    }
+    return '';
+  }
+
+  function cleanText(text) {
+    return text.replace(/\[NAVIGATE:[^\]]*\]/g,'').replace(/\[.*?\]/g,'').trim();
+  }
+
+  async function callAgent(message) {
+    const statusEl = document.getElementById('agent-status');
+    statusEl.textContent = '⏳ Đang xử lý...';
+    showTyping();
+    try {
+      const res = await fetch(API_BASE + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId, message })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      statusEl.textContent = '● Đang hoạt động';
+      return data.reply || 'Xin lỗi, không nhận được phản hồi.';
+    } catch(e) {
+      statusEl.textContent = '● Đang hoạt động';
+      return '⚠️ Không thể kết nối server. Đảm bảo backend đang chạy tại localhost:8000\n\nLỗi: ' + e.message;
+    } finally {
+      hideTyping();
+    }
+  }
+
+  async function sendMsg(text) {
+    if (isTyping || !text.trim()) return;
+    addMsg('user', text);
+    isTyping = true;
+    const raw = await callAgent(text);
+    const display = cleanText(raw);
+    const extra = processExtra(raw);
+    addMsg('bot', display, extra);
+    processNavigation(raw);
+    isTyping = false;
+  }
+
+  async function handleSend() {
+    const inp = document.getElementById('chat-input');
+    const text = inp.value.trim();
+    if (!text || isTyping) return;
+    inp.value = '';
+    await sendMsg(text);
+  }
+</script>
+</body>
+</html>
