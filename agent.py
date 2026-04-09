@@ -128,7 +128,7 @@ def main() -> None:
     graph = build_graph()
 
     print("=" * 60)
-    print("TravelBuddy - Trợ lý Du lịch thông minh")
+    print("xanhsm")
     print("Gõ 'quit' để thoát")
     print("=" * 60)
 
