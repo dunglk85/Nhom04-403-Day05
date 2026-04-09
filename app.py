@@ -123,6 +123,7 @@ def _append_message(role: str, content: str) -> None:
         msg = AIMessage(content=content)
     else:
         raise ValueError(f"Unknown role: {role}")
+    
     st.session_state.messages.append(msg)
 
 
@@ -138,7 +139,8 @@ def _handle_prompt(prompt: str) -> None:
                 st.session_state.messages = updated_messages
             except Exception as exc:  # pragma: no cover - UI fallback
                 answer = f"Khong the xu ly yeu cau luc nay.\n\nChi tiet loi: `{exc}`"
-            st.markdown(answer)
+            if answer.strip():
+                st.markdown(answer)
 
 
 def _queue_prompt(prompt: str) -> None:
@@ -168,6 +170,8 @@ def _render_messages() -> None:
         if isinstance(message, HumanMessage):
             role = "user"
         elif isinstance(message, AIMessage):
+            if not message.content.strip():
+                continue  # skip empty assistant messages
             role = "assistant"
         else:
             continue  # skip tool messages
