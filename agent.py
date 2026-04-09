@@ -3,20 +3,20 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import Annotated, Any, Iterable, TypedDict
-from langchain_google_genai import ChatGoogleGenerativeAI
+# from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
 from langchain_core.messages import BaseMessage, SystemMessage
-# from langchain_openai import ChatOpenAI
+from langchain_openai import ChatOpenAI
 from langgraph.graph import START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
 
-from tool import calculate_budget, search_flights, search_hotels
+from tool import create_ticket,  lookup_trip
 
-LOGGER = logging.getLogger("travelbuddy")
-PROMPT_PATH = Path(__file__).with_name("system_promt.txt")
-# MODEL_NAME = "gpt-4o-mini"
-MODEL_NAME="gemini-2.5-flash"
+LOGGER = logging.getLogger("XanhSM")
+PROMPT_PATH = Path(__file__).with_name("system_promt.md")
+MODEL_NAME = "gpt-4o-mini"
+# MODEL_NAME="gemini-2.5-flash"
 
 
 class AgentState(TypedDict):
@@ -26,7 +26,7 @@ class AgentState(TypedDict):
 def _setup_logging() -> None:
     LOGGER.setLevel(logging.DEBUG)
 
-    file_handler = logging.FileHandler("travelbuddy.log", encoding="utf-8")
+    file_handler = logging.FileHandler("XanhSM.log", encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
@@ -74,10 +74,10 @@ def build_graph() -> Any:
     load_dotenv(override=True)
 
     system_prompt = _load_system_prompt()
-    tools_list = [search_flights, search_hotels, calculate_budget]
+    tools_list = [create_ticket,  lookup_trip]
 
-    # llm = ChatOpenAI(model=MODEL_NAME, temperature=0)
-    llm= ChatGoogleGenerativeAI(model=MODEL_NAME,temperature=0)
+    llm = ChatOpenAI(model=MODEL_NAME, temperature=0)
+    # llm= ChatGoogleGenerativeAI(model=MODEL_NAME,temperature=0)
     llm_with_tools = llm.bind_tools(tools_list)
 
     def agent_node(state: AgentState) -> dict[str, list[BaseMessage]]:
