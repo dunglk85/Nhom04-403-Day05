@@ -50,8 +50,8 @@ User nhập: “Tôi bị tài xế đi vòng”
 Trigger:
 User: “Tôi để quên ví trên xe”
 
-|Path|Mô tả|  
-|------|-------|
+|Path|Câu hỏi thiết kế|Mô tả|  
+|------|-------|--------|
 |Happy	|Flow end?	|AI hỏi thêm info → tạo ticket thành công|
 |Low-confidence	|Không chắc?	|AI hỏi thêm chi tiết (xe, thời gian)|
 |Failure	|Sai?	|AI không detect đúng intent|
