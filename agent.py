@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from functools import lru_cache
 import logging
 from pathlib import Path
 from typing import Annotated, Any, Iterable, TypedDict
 # from langchain_google_genai import ChatGoogleGenerativeAI
 from dotenv import load_dotenv
-from langchain_core.messages import BaseMessage, SystemMessage
+from langchain_core.messages import BaseMessage, SystemMessage, HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.graph import START, StateGraph
 from langgraph.graph.message import add_messages
@@ -123,9 +124,25 @@ def build_graph() -> Any:
     return builder.compile()
 
 
-def main() -> None:
+@lru_cache(maxsize=1)
+def get_graph() -> Any:
     _setup_logging()
-    graph = build_graph()
+    return build_graph()
+
+
+def run_agent(user_input: str, messages: list[BaseMessage], graph: Any | None = None) -> tuple[str, list[BaseMessage]]:
+    active_graph = graph or get_graph()
+    messages.append(HumanMessage(content=user_input))
+    result: AgentState = active_graph.invoke({"messages": messages})
+    updated_messages = result["messages"]
+    final_msg = updated_messages[-1]
+    output = _content_to_text(getattr(final_msg, "content", ""))
+    return output, updated_messages
+
+
+def main() -> None:
+    graph = get_graph()
+    messages: list[BaseMessage] = []
 
     print("=" * 60)
     print("xanhsm")
@@ -137,11 +154,9 @@ def main() -> None:
         if user_input.lower() in {"quit", "exit", "bye"}:
             break
 
-        result: AgentState = graph.invoke({"messages": [("human", user_input)]})
-        final_msg = result["messages"][-1]
-
         # 👉 CHỈ HIỂN THỊ OUTPUT
-        print(f"\nTravelBuddy: {_content_to_text(getattr(final_msg, 'content', ''))}")
+        output, messages = run_agent(user_input, messages, graph=graph)
+        print(f"\nXanhSM_CRM: {output}")
 
 
 if __name__ == "__main__":
